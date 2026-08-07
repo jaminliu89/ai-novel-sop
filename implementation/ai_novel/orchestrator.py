@@ -26,7 +26,9 @@ from .agents import (
     InspectorAgent,
     ParagraphGeneratorAgent,
     PrunerAgent,
+    RollingReviewerAgent,
     SceneDecomposerAgent,
+    StateWriterAgent,
 )
 from .llm_client import LLMClient
 from .memory.store import (
@@ -34,6 +36,7 @@ from .memory.store import (
     ConstraintStore,
     ForeshadowRegistry,
     NovelStateStore,
+    StoryStateStore,
     TreeStore,
 )
 from .memory.vector_store import VectorStore
@@ -157,6 +160,7 @@ class Orchestrator:
         self.constraint_store = ConstraintStore()
         self.foreshadow_registry = ForeshadowRegistry()
         self.agent_log = AgentLog()
+        self.story_state_store = StoryStateStore()
 
         storage_cfg = self.config.get("storage", {})
         chroma_path = storage_cfg.get("chroma_path", "chroma_db/")
@@ -182,6 +186,11 @@ class Orchestrator:
         self.decoder = DecoderAgent(**common_args)
         self.scene_decomposer = SceneDecomposerAgent(**common_args)
         self.paragraph_generator = ParagraphGeneratorAgent(**common_args)
+        self.state_writer = StateWriterAgent(
+            **common_args,
+            story_state_store=self.story_state_store,
+        )
+        self.rolling_reviewer = RollingReviewerAgent(**common_args)
 
     # ------------------------------------------------------------------
     # 状态持久化
@@ -739,7 +748,16 @@ class Orchestrator:
 
         all_scenes: list[dict] = []
         all_paragraphs: list[dict] = []
+        all_contracts: list[dict] = []  # 章节合同收集
+        all_inspections: list[dict] = []  # L4 审视报告收集
+        all_state_snapshots: list[dict] = []  # 故事世界状态快照收集
+        all_rolling_reviews: list[dict] = []  # 滚动复盘报告收集
         previous_scenes_text: str = ""
+
+        # 滚动复盘窗口大小
+        review_window: int = 3
+        # 缓存最近 N 章的数据供滚动复盘使用
+        recent_chapters_buffer: list[dict] = []
 
         total_chapters = len(chapters)
         logger.info(">>> L3→L4 链路开始，共 %d 章", total_chapters)
@@ -776,22 +794,38 @@ class Orchestrator:
                 metrics={"scene_count": len(scenes)},
             )
 
-            # 存储 L3 场景
+            # 提取章节合同
+            chapter_contract: dict = decompose_result.get("chapter_contract", {})
+            all_contracts.append({
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "chapter_contract": chapter_contract,
+            })
+
+            # 存储 L3 场景（含章节合同）
             l3_version = self.tree_version + ch_idx
             l3_content = {
                 "layer": "L3",
                 "chapter_index": ch_idx,
                 "chapter_title": ch_title,
+                "chapter_contract": chapter_contract,
                 "scenes": scenes,
                 "version": l3_version,
             }
             await self.tree_store.save_layer("L3", l3_content, l3_version)
 
             all_scenes.extend(scenes)
+            contract_status = "有合同" if chapter_contract else "无合同"
             logger.info(
-                "第%d章场景分解完成: %d 个场景, 目标 %d 字",
+                "第%d章场景分解完成: %d 个场景, 目标 %d 字, %s",
                 ch_idx, len(scenes), decompose_result.get("total_word_target", 0),
+                contract_status,
             )
+            if chapter_contract:
+                logger.info(
+                    "  章节合同 - 读者问题: %s",
+                    chapter_contract.get("reader_question", "未指定")[:60],
+                )
 
             # ── L4 段落生成 ──
             self.current_phase = Phase.P5_PARAGRAPHS
@@ -802,7 +836,12 @@ class Orchestrator:
 
             for s_idx, scene in enumerate(scenes):
                 scene_id = scene.get("scene_id", f"ch{ch_idx}_s{s_idx+1}")
-                logger.info("  生成段落: %s", scene_id)
+                is_last_scene: bool = (s_idx == len(scenes) - 1)
+                logger.info(
+                    "  生成段落: %s%s",
+                    scene_id,
+                    " (末场景)" if is_last_scene else "",
+                )
 
                 gen_input = {
                     "scene": scene,
@@ -815,6 +854,8 @@ class Orchestrator:
                     "foreshadow_plan": scene.get("foreshadow_actions", []),
                     "quality_mode": scene.get("quality_mode", "fast"),
                     "word_target": scene.get("word_target", 1500),
+                    "chapter_contract": chapter_contract,
+                    "is_last_scene": is_last_scene,
                 }
 
                 gen_result = await self.paragraph_generator.execute(gen_input)
@@ -872,6 +913,214 @@ class Orchestrator:
                 ch_idx, l4_content["total_words"],
             )
 
+            # ── L4 审视（读者视角冷读 + 五维审查）──
+            self.current_action = Action.INSPECT
+            await self.save_state()
+
+            chapter_text: str = "\n\n".join(chapter_paragraphs)
+            inspect_input = {
+                "target_layer": "L4",
+                "content": chapter_text,
+                "constraints": constraints,
+                "foreshadow_registry": await self.foreshadow_registry.get_status(),
+                "chapter_contract": chapter_contract,
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "scenes": scenes,
+                "quality_mode": "precision",
+            }
+
+            inspect_result: dict = await self.inspector.execute(inspect_input)
+            chapter_verdict: str = inspect_result.get("verdict", "warn")
+
+            await self.agent_log.log(
+                agent="inspector", action="L4审视", layer="L4",
+                input_data={
+                    "chapter": ch_title,
+                    "content_length": len(chapter_text),
+                    "has_contract": bool(chapter_contract),
+                },
+                output_data=inspect_result,
+                metrics=inspect_result.get("metrics", {}),
+            )
+
+            # 记录冷读结果
+            cold_read: dict = inspect_result.get("cold_read_report", {})
+            if cold_read:
+                logger.info(
+                    "第%d章冷读评估: overall=%s, 合同履行率=%.0f%%, %s",
+                    ch_idx,
+                    cold_read.get("overall", "未知"),
+                    cold_read.get("contract_fulfillment", {}).get("rate", 0) * 100,
+                    "; ".join(
+                        f"{d['dimension']}={d['status']}"
+                        for d in cold_read.get("details", [])
+                    ),
+                )
+
+            if chapter_verdict == "fail":
+                logger.warning(
+                    "第%d章 L4 审视未通过 (verdict=fail): %s",
+                    ch_idx,
+                    [i.get("description", "") for i in inspect_result.get("issues", [])][:3],
+                )
+                # 不阻断流程（Mock 模式下正文较短是预期行为），
+                # 但记录问题供后续优化
+            elif chapter_verdict == "warn":
+                logger.info(
+                    "第%d章 L4 审视有警告 (verdict=warn)，继续推进",
+                    ch_idx,
+                )
+            else:
+                logger.info("第%d章 L4 审视通过 (verdict=pass)", ch_idx)
+
+            all_inspections.append({
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "verdict": chapter_verdict,
+                "cold_read": cold_read,
+                "issues": inspect_result.get("issues", []),
+                "checks": inspect_result.get("checks", []),
+            })
+
+            # ── 状态回写 ──
+            self.current_action = Action.SOLIDIFY
+            await self.save_state()
+
+            state_writer_input = {
+                "chapter_text": chapter_text,
+                "chapter_contract": chapter_contract,
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "scenes": scenes,
+            }
+
+            state_result: dict = await self.state_writer.execute(state_writer_input)
+
+            await self.agent_log.log(
+                agent="state_writer", action="状态回写", layer="L4",
+                input_data={"chapter": ch_title},
+                output_data=state_result,
+                metrics={"new_changes_count": state_result.get("new_changes_count", 0)},
+            )
+
+            logger.info(
+                "第%d章状态回写完成: 角色状态=%d, 时间线=%d, "
+                "资源变动=%d, 关系变动=%d, 新变化=%d",
+                ch_idx,
+                len(state_result.get("character_states", [])),
+                len(state_result.get("timeline_events", [])),
+                len(state_result.get("resource_changes", [])),
+                len(state_result.get("relationship_changes", [])),
+                state_result.get("new_changes_count", 0),
+            )
+
+            all_state_snapshots.append({
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "character_states": state_result.get("character_states", []),
+                "timeline_events": state_result.get("timeline_events", []),
+                "resource_changes": state_result.get("resource_changes", []),
+                "relationship_changes": state_result.get("relationship_changes", []),
+                "summary": state_result.get("summary", ""),
+                "new_changes_count": state_result.get("new_changes_count", 0),
+            })
+
+            # ── 缓存本章数据供滚动复盘 ──
+            recent_chapters_buffer.append({
+                "chapter_index": ch_idx,
+                "chapter_title": ch_title,
+                "chapter_text": chapter_text,
+                "chapter_contract": chapter_contract,
+                "scenes": scenes,
+            })
+            # 只保留最近 review_window 章
+            if len(recent_chapters_buffer) > review_window:
+                recent_chapters_buffer = recent_chapters_buffer[-review_window:]
+
+            # ── 滚动复盘（每 review_window 章触发一次）──
+            if (
+                len(recent_chapters_buffer) >= review_window
+                and ch_idx % review_window == 0
+            ):
+                logger.info(
+                    ">>> 触发滚动复盘（第%d章窗口, %d章）",
+                    ch_idx, len(recent_chapters_buffer),
+                )
+
+                # 获取当前伏笔状态
+                current_foreshadow_status = (
+                    await self.foreshadow_registry.get_status()
+                )
+
+                # 获取最近 N 章的状态快照
+                recent_snapshots: list[dict] = []
+                for buf_ch in recent_chapters_buffer:
+                    buf_idx: int = buf_ch["chapter_index"]
+                    snap: dict = await self.story_state_store.get_snapshot(
+                        buf_idx
+                    )
+                    if snap:
+                        recent_snapshots.append(snap)
+
+                review_input = {
+                    "chapters_data": recent_chapters_buffer,
+                    "foreshadow_status": current_foreshadow_status,
+                    "state_snapshots": recent_snapshots,
+                    "window_size": review_window,
+                    "current_chapter_index": ch_idx,
+                }
+
+                review_result: dict = (
+                    await self.rolling_reviewer.execute(review_input)
+                )
+
+                await self.agent_log.log(
+                    agent="rolling_reviewer",
+                    action="滚动复盘",
+                    layer="L4",
+                    input_data={
+                        "chapters": [c["chapter_index"] for c in recent_chapters_buffer],
+                        "window": review_window,
+                    },
+                    output_data=review_result,
+                    metrics={
+                        "verdict": review_result.get("verdict", ""),
+                        "dimension_count": len(review_result.get("dimensions", [])),
+                        "heuristic_findings": len(
+                            review_result.get("heuristic_report", {}).get("findings", [])
+                        ),
+                    },
+                )
+
+                # 记录复盘维度状态
+                for dim in review_result.get("dimensions", []):
+                    logger.info(
+                        "  滚动复盘·%s: %s — %s",
+                        dim.get("name", ""),
+                        dim.get("status", ""),
+                        dim.get("findings", "")[:80],
+                    )
+
+                logger.info(
+                    "滚动复盘完成（第%d章）: verdict=%s",
+                    ch_idx,
+                    review_result.get("verdict", ""),
+                )
+
+                all_rolling_reviews.append({
+                    "triggered_at_chapter": ch_idx,
+                    "reviewed_chapters": [
+                        c["chapter_index"] for c in recent_chapters_buffer
+                    ],
+                    "verdict": review_result.get("verdict", ""),
+                    "dimensions": review_result.get("dimensions", []),
+                    "recommendations": review_result.get("recommendations", []),
+                    "heuristic_findings": review_result.get(
+                        "heuristic_report", {}
+                    ).get("findings", []),
+                })
+
         # ── 汇总 ──
         self.current_phase = Phase.P6_UNIFY
         self.current_action = Action.DONE
@@ -887,6 +1136,7 @@ class Orchestrator:
         # 伏笔状态
         foreshadow_status = await self.foreshadow_registry.get_status()
 
+        # 章节合同已在循环中收集到 all_contracts
         result = {
             "status": "completed",
             "chapters_processed": total_chapters,
@@ -894,6 +1144,10 @@ class Orchestrator:
             "total_words": total_words,
             "scenes": all_scenes,
             "paragraphs": all_paragraphs,
+            "chapter_contracts": all_contracts,
+            "inspection_reports": all_inspections,
+            "story_state_snapshots": all_state_snapshots,
+            "rolling_reviews": all_rolling_reviews,
             "quality_report": {
                 "overall": overall_quality,
                 "per_paragraph": [

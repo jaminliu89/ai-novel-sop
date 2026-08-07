@@ -22,6 +22,8 @@ from .inspector import InspectorAgent
 from .distiller import DistillerAgent
 from .scene_decomposer import SceneDecomposerAgent
 from .paragraph_generator import ParagraphGeneratorAgent
+from .state_writer import StateWriterAgent
+from .rolling_reviewer import RollingReviewerAgent
 
 __all__ = [
     "BaseAgent",
@@ -33,4 +35,6 @@ __all__ = [
     "DistillerAgent",
     "SceneDecomposerAgent",
     "ParagraphGeneratorAgent",
+    "StateWriterAgent",
+    "RollingReviewerAgent",
 ]

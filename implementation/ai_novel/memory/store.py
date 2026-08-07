@@ -2,12 +2,13 @@
 SQLite + JSON 持久化层
 =====================
 
-提供五类存储：
+提供六类存储：
 - NovelStateStore：小说流水线整体状态（当前层/动作/场景/人机节点等）
 - TreeStore：小说之树五层产出（带版本号）+ JSON 快照
 - ForeshadowRegistry：伏笔登记与回收追踪
 - ConstraintStore：每层硬约束的存取
 - AgentLog：Agent 调用历史日志
+- StoryStateStore：故事世界状态快照（角色/时间线/资源/关系），每章后回写
 
 所有 SQLite 操作均通过 aiosqlite 异步执行；表使用
 ``CREATE TABLE IF NOT EXISTS`` 自动创建。JSON 快照落盘到 snapshots/ 目录。
@@ -612,5 +613,170 @@ class AgentLog(_BaseSQLiteStore):
                         item[key] = json.loads(item.get(key) or "null")
                     except json.JSONDecodeError:
                         pass
+                result.append(item)
+            return result
+
+
+class StoryStateStore(_BaseSQLiteStore):
+    """故事世界状态快照存储，每章结束后回写。
+
+    追踪四个维度的状态变化：
+    - character_states: 角色状态（位置/情绪/生理/已知信息）
+    - timeline: 事件时间线（章节/事件/时间标记）
+    - resources: 资源变动（获得/失去的物品/权限/盟友）
+    - relationships: 关系变动（信任度/联盟/冲突）
+
+    每章存储一份完整快照，支持按章节回溯。
+    """
+
+    _DDL = """
+    CREATE TABLE IF NOT EXISTS story_state (
+        chapter_index      INTEGER PRIMARY KEY,
+        chapter_title      TEXT,
+        character_states   TEXT NOT NULL,
+        timeline_events    TEXT NOT NULL,
+        resource_changes   TEXT NOT NULL,
+        relationship_changes TEXT NOT NULL,
+        summary            TEXT,
+        created_at         TEXT NOT NULL
+    );
+    """
+
+    async def init(self) -> None:
+        """建表（幂等）。"""
+        await self._init_schema(self._DDL)
+
+    async def save_snapshot(
+        self,
+        chapter_index: int,
+        chapter_title: str,
+        character_states: list[dict],
+        timeline_events: list[dict],
+        resource_changes: list[dict],
+        relationship_changes: list[dict],
+        summary: str = "",
+    ) -> None:
+        """保存某章结束后的故事状态快照。
+
+        同一 chapter_index 的快照会被覆盖。
+
+        :param chapter_index: 章节序号
+        :param chapter_title: 章节标题
+        :param character_states: 角色状态列表
+        :param timeline_events: 时间线事件列表
+        :param resource_changes: 资源变动列表
+        :param relationship_changes: 关系变动列表
+        :param summary: 本章状态变化摘要
+        """
+        await self.init()
+        async with self._conn() as db:
+            await db.execute(
+                "INSERT OR REPLACE INTO story_state "
+                "(chapter_index, chapter_title, character_states, "
+                " timeline_events, resource_changes, relationship_changes, "
+                " summary, created_at) "
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                (
+                    chapter_index,
+                    chapter_title,
+                    json.dumps(character_states, ensure_ascii=False),
+                    json.dumps(timeline_events, ensure_ascii=False),
+                    json.dumps(resource_changes, ensure_ascii=False),
+                    json.dumps(relationship_changes, ensure_ascii=False),
+                    summary,
+                    _now_iso(),
+                ),
+            )
+            await db.commit()
+        logger.info(
+            "StoryStateStore 已保存第%d章状态快照: 角色=%d, 事件=%d, 资源=%d, 关系=%d",
+            chapter_index,
+            len(character_states),
+            len(timeline_events),
+            len(resource_changes),
+            len(relationship_changes),
+        )
+
+    async def get_snapshot(self, chapter_index: int) -> dict:
+        """获取某章的状态快照。
+
+        :param chapter_index: 章节序号
+        :return: 状态快照字典，不存在时返回空字典
+        """
+        await self.init()
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM story_state WHERE chapter_index = ?",
+                (chapter_index,),
+            )
+            row = await cursor.fetchone()
+            if row is None:
+                return {}
+            item = dict(row)
+            for key in (
+                "character_states",
+                "timeline_events",
+                "resource_changes",
+                "relationship_changes",
+            ):
+                try:
+                    item[key] = json.loads(item.get(key) or "[]")
+                except json.JSONDecodeError:
+                    item[key] = []
+            return item
+
+    async def get_latest_snapshot(self) -> dict:
+        """获取最新章节的状态快照。
+
+        :return: 状态快照字典，无记录时返回空字典
+        """
+        await self.init()
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM story_state ORDER BY chapter_index DESC LIMIT 1"
+            )
+            row = await cursor.fetchone()
+            if row is None:
+                return {}
+            item = dict(row)
+            for key in (
+                "character_states",
+                "timeline_events",
+                "resource_changes",
+                "relationship_changes",
+            ):
+                try:
+                    item[key] = json.loads(item.get(key) or "[]")
+                except json.JSONDecodeError:
+                    item[key] = []
+            return item
+
+    async def get_all_snapshots(self) -> list[dict]:
+        """获取所有章节的状态快照列表（按章节升序）。
+
+        :return: 状态快照列表
+        """
+        await self.init()
+        async with self._conn() as db:
+            db.row_factory = aiosqlite.Row
+            cursor = await db.execute(
+                "SELECT * FROM story_state ORDER BY chapter_index ASC"
+            )
+            rows = await cursor.fetchall()
+            result: list[dict] = []
+            for row in rows:
+                item = dict(row)
+                for key in (
+                    "character_states",
+                    "timeline_events",
+                    "resource_changes",
+                    "relationship_changes",
+                ):
+                    try:
+                        item[key] = json.loads(item.get(key) or "[]")
+                    except json.JSONDecodeError:
+                        item[key] = []
                 result.append(item)
             return result

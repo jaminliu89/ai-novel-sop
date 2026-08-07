@@ -119,6 +119,64 @@ async def main() -> None:
         status = "已回收" if fs.get("harvested") else "待回收"
         print(f"    {fs['foreshadow_id']}: {status} @ {fs.get('planted_location', '?')}")
 
+    # 滚动复盘报告
+    rolling_reviews = result.get("rolling_reviews", [])
+    print(f"\n  滚动复盘报告 ({len(rolling_reviews)} 次):")
+    for rr in rolling_reviews:
+        triggered_at = rr.get("triggered_at_chapter", 0)
+        reviewed = rr.get("reviewed_chapters", [])
+        verdict = rr.get("verdict", "")
+        verdict_icon = {"pass": "✓", "warn": "⚠", "fail": "✗"}.get(verdict, "?")
+        print(
+            f"    {verdict_icon} 第{triggered_at}章触发 "
+            f"(复盘第{reviewed[0]}-{reviewed[-1]}章): verdict={verdict}"
+        )
+        for dim in rr.get("dimensions", []):
+            dim_status = dim.get("status", "")
+            dim_icon = {"pass": "✓", "warn": "⚠", "fail": "✗"}.get(dim_status, "?")
+            findings = dim.get("findings", dim.get("heuristic_findings", ""))
+            if isinstance(findings, str) and len(findings) > 80:
+                findings = findings[:80] + "..."
+            print(f"      {dim_icon} {dim.get('name', '')}: {findings}")
+        heuristic_findings = rr.get("heuristic_findings", [])
+        if heuristic_findings:
+            print(f"      启发式发现: {len(heuristic_findings)} 项")
+            for hf in heuristic_findings[:3]:
+                desc = hf.get("description", "")
+                if len(desc) > 80:
+                    desc = desc[:80] + "..."
+                print(f"        · [{hf.get('dimension', '')}] {desc}")
+        for rec in rr.get("recommendations", [])[:2]:
+            if len(rec) > 80:
+                rec = rec[:80] + "..."
+            print(f"      建议: {rec}")
+
+    # 故事世界状态快照
+    snapshots = result.get("story_state_snapshots", [])
+    print(f"\n  故事世界状态快照 ({len(snapshots)} 章):")
+    for snap in snapshots:
+        ch_idx = snap.get("chapter_index", 0)
+        ch_title = snap.get("chapter_title", "")
+        char_count = len(snap.get("character_states", []))
+        timeline_count = len(snap.get("timeline_events", []))
+        resource_count = len(snap.get("resource_changes", []))
+        rel_count = len(snap.get("relationship_changes", []))
+        new_count = snap.get("new_changes_count", 0)
+        print(
+            f"    第{ch_idx}章「{ch_title}」: "
+            f"角色={char_count}, 时间线={timeline_count}, "
+            f"资源={resource_count}, 关系={rel_count}, 新变化={new_count}"
+        )
+        # 显示角色状态摘要
+        for cs in snap.get("character_states", []):
+            name = cs.get("name", "?")
+            loc = cs.get("location", "")
+            emo = cs.get("emotional_state", "")
+            phys = cs.get("physical_state", "")
+            print(f"      · {name}: 位置={loc}, 情绪={emo}")
+            if phys:
+                print(f"        生理: {phys}")
+
     # 输出文件
     print(f"\n  产出文件:")
     print(f"    JSON:  ai_novel/output_l3_l4.json")
