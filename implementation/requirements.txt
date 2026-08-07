@@ -1,0 +1,10 @@
+openai>=1.0
+anthropic>=0.20
+aiosqlite
+chromadb
+sentence-transformers
+jieba
+spacy
+scikit-learn
+numpy
+pyyaml

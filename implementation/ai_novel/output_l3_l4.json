@@ -1,0 +1,845 @@
+{
+  "status": "completed",
+  "chapters_processed": 5,
+  "total_scenes": 14,
+  "total_words": 2638,
+  "scenes": [
+    {
+      "scene_id": "ch1_s1",
+      "title": "死区初现",
+      "location": "共感科技大厦B座三层·开放办公区·下午",
+      "characters": [
+        "沈语冰",
+        "陈静"
+      ],
+      "conflict": "沈语冰发现陈静的情绪信号完全归零，但陈静本人行为正常",
+      "emotional_goal": "不安与困惑——熟悉的日常出现裂缝",
+      "sensory_anchor": "植入体反馈的'白纸'感——没有温度、没有压力、没有色彩",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [
+        {
+          "id": "fs3",
+          "action": "埋设",
+          "detail": "左手小指发麻"
+        },
+        {
+          "id": "fs1",
+          "action": "埋设",
+          "detail": "植入体温度异常+0.6°C"
+        }
+      ],
+      "word_target": 1200,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch1_s2",
+      "title": "会议中的确认",
+      "location": "共感科技·会议室·下午",
+      "characters": [
+        "沈语冰",
+        "陈静",
+        "产品总监",
+        "项目经理"
+      ],
+      "conflict": "在密集情绪信号中确认陈静的零信号持续存在",
+      "emotional_goal": "压抑的焦虑——在人群中独自察觉异常",
+      "sensory_anchor": "会议室多人情绪叠加如'缓慢沸腾的汤'，陈静的零信号格外刺眼",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [],
+      "word_target": 800,
+      "quality_mode": "fast"
+    },
+    {
+      "scene_id": "ch1_s3",
+      "title": "数据库中的线索",
+      "location": "沈语冰的工位 → 家中·夜晚",
+      "characters": [
+        "沈语冰"
+      ],
+      "conflict": "系统报告显示一切正常，但沈语冰找到了三条匿名反馈",
+      "emotional_goal": "独处的寂静中，疑虑开始发酵",
+      "sensory_anchor": "饭团在微波炉里转圈，左手小指的麻木感",
+      "narrative_function": "埋设伏笔",
+      "foreshadow_actions": [
+        {
+          "id": "fs3",
+          "action": "推进",
+          "detail": "失聪区域扩大至第二指节"
+        }
+      ],
+      "word_target": 1000,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch2_s1",
+      "title": "晨间观察",
+      "location": "共感科技·开放办公区·早晨",
+      "characters": [
+        "沈语冰",
+        "陈静"
+      ],
+      "conflict": "确认陈静的零信号在第二天持续",
+      "emotional_goal": "冷静的执念——沈语冰开始系统性地追踪",
+      "sensory_anchor": "空旷办公区的淡薄情绪光晕，陈静走进时信号依然为零",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [],
+      "word_target": 600,
+      "quality_mode": "fast"
+    },
+    {
+      "scene_id": "ch2_s2",
+      "title": "食堂相遇·苏映",
+      "location": "共感科技·食堂·中午",
+      "characters": [
+        "沈语冰",
+        "苏映"
+      ],
+      "conflict": "苏映透露在情绪信号中发现了未知频率模式",
+      "emotional_goal": "好奇与警觉并存——两条调查线开始交汇",
+      "sensory_anchor": "苏映情绪信号中亮黄色底色上的蓝色脉冲，兴奋与恐惧并存",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [
+        {
+          "id": "fs1",
+          "action": "推进",
+          "detail": "植入体温度升至37.8°C"
+        }
+      ],
+      "word_target": 1000,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch2_s3",
+      "title": "四十七条记录",
+      "location": "沈语冰的工位·下午",
+      "characters": [
+        "沈语冰"
+      ],
+      "conflict": "发现47个用户信号大幅下降，这不是个例",
+      "emotional_goal": "从个人疑虑升级为系统性恐惧",
+      "sensory_anchor": "屏幕上的数据曲线，左手无名指也开始发麻",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [
+        {
+          "id": "fs3",
+          "action": "推进",
+          "detail": "无名指第二指节开始发麻"
+        }
+      ],
+      "word_target": 800,
+      "quality_mode": "fast"
+    },
+    {
+      "scene_id": "ch2_s4",
+      "title": "夜公园·线索梳理",
+      "location": "张江路·小公园·人工湖边·夜晚",
+      "characters": [
+        "沈语冰"
+      ],
+      "conflict": "四条线索指向一个被压制的真相",
+      "emotional_goal": "孤独中的清醒——沈语冰确认有人在掩盖死区现象",
+      "sensory_anchor": "湖面碎光，夜鹭缩着脖子一动不动，植入体微烫如嵌在皮下的硬币",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [],
+      "word_target": 800,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch3_s1",
+      "title": "不速之客",
+      "location": "共感科技大厦·一楼大厅·上午",
+      "characters": [
+        "沈语冰",
+        "姜北辰"
+      ],
+      "conflict": "姜北辰拦住沈语冰，请求她用植入体确认女儿的状态",
+      "emotional_goal": "突兀的侵入感——沈语冰的私人调查被外部力量打断",
+      "sensory_anchor": "姜北辰压抑的愤怒情绪信号——暗红色底色上的灰白条纹",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [],
+      "word_target": 1000,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch3_s2",
+      "title": "画作的秘密",
+      "location": "姜北辰的车内",
+      "characters": [
+        "沈语冰",
+        "姜北辰"
+      ],
+      "conflict": "姜北辰展示女儿的画作，画中反复出现某种波形图案",
+      "emotional_goal": "不安的共鸣——沈语冰意识到死区比她想的更复杂",
+      "sensory_anchor": "画作上的重复波形——像心电图，但频率不对",
+      "narrative_function": "埋设伏笔",
+      "foreshadow_actions": [
+        {
+          "id": "fs5",
+          "action": "埋设",
+          "detail": "女儿画作中的重复波形图案"
+        }
+      ],
+      "word_target": 1200,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch3_s3",
+      "title": "不信任的联盟",
+      "location": "咖啡馆",
+      "characters": [
+        "沈语冰",
+        "姜北辰"
+      ],
+      "conflict": "沈语冰和姜北辰在调查方法上产生分歧——技术 vs 直觉",
+      "emotional_goal": "张力中的妥协——两个不同世界的人被迫合作",
+      "sensory_anchor": "咖啡杯上的水雾，姜北辰的命令式短句",
+      "narrative_function": "塑造人物",
+      "foreshadow_actions": [],
+      "word_target": 800,
+      "quality_mode": "fast"
+    },
+    {
+      "scene_id": "ch4_s1",
+      "title": "姜家",
+      "location": "姜北辰家·客厅·下午",
+      "characters": [
+        "沈语冰",
+        "姜北辰",
+        "姜北辰的女儿（姜晓）"
+      ],
+      "conflict": "沈语冰用植入体扫描姜晓，确认她是死区",
+      "emotional_goal": "沉重的确认——一个父亲最怕的答案",
+      "sensory_anchor": "客厅的整洁与姜晓的空洞眼神，植入体扫描时的绝对静默",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [],
+      "word_target": 1200,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch4_s2",
+      "title": "贺明轩的侧面",
+      "location": "共感科技·走廊·傍晚",
+      "characters": [
+        "沈语冰",
+        "贺明轩"
+      ],
+      "conflict": "贺明轩'偶遇'沈语冰，暗示她应停止调查",
+      "emotional_goal": "被注视的压迫感——温和外表下的警告",
+      "sensory_anchor": "贺明轩恒定温和的情绪信号——过于完美，反而可疑",
+      "narrative_function": "埋设伏笔",
+      "foreshadow_actions": [
+        {
+          "id": "fs2",
+          "action": "埋设",
+          "detail": "贺明轩从不触碰植入体用户"
+        }
+      ],
+      "word_target": 800,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch5_s1",
+      "title": "共振体假说",
+      "location": "苏映的实验室·夜晚",
+      "characters": [
+        "沈语冰",
+        "苏映"
+      ],
+      "conflict": "苏映提出共振体假说——情绪频谱中的非碳基生命体",
+      "emotional_goal": "认知震撼——'死区'不是故障，是被捕食",
+      "sensory_anchor": "实验室屏幕上的频率波形图，苏映兴奋与恐惧交织的蓝色脉冲",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [
+        {
+          "id": "fs1",
+          "action": "推进",
+          "detail": "植入体在实验室中剧烈发热"
+        }
+      ],
+      "word_target": 1200,
+      "quality_mode": "precision"
+    },
+    {
+      "scene_id": "ch5_s2",
+      "title": "关键转折T1",
+      "location": "苏映的实验室",
+      "characters": [
+        "沈语冰",
+        "苏映"
+      ],
+      "conflict": "沈语冰意识到：死区不是'没有情绪'而是'情绪被吃掉了'",
+      "emotional_goal": "存在性恐惧——人类情绪是某种存在的食物",
+      "sensory_anchor": "植入体温度飙升至38.5°C，左手从手腕以下完全失去知觉",
+      "narrative_function": "推进情节",
+      "foreshadow_actions": [
+        {
+          "id": "fs3",
+          "action": "推进",
+          "detail": "失聪区域扩大到左前臂"
+        },
+        {
+          "id": "fs1",
+          "action": "推进",
+          "detail": "植入体温度38.5°C"
+        }
+      ],
+      "word_target": 1000,
+      "quality_mode": "precision"
+    }
+  ],
+  "paragraphs": [
+    {
+      "scene_id": "ch1_s1",
+      "chapter_index": 1,
+      "scene_index": 1,
+      "content": "沈语冰的植入体在周四下午两点十七分报了错。\n\n不是那种正式的错误弹窗。共感科技的植入体没有界面，它直接把信号写进你的神经。正常情况下，别人生气时你会觉得脖子后面发热，别人难过时你会感到一阵轻微的失重。\n\n两点十七分，她路过陈静的工位。什么都没有。\n\n不是\"情绪平静\"。陈静的工位是绝对的零。没有温度，没有压力，没有色彩。沈语冰站在她旁边，植入体反馈的信号是一张白纸。\n\n她摸了摸耳后的植入体接口。金属微凸，比平时热了一点。",
+      "word_count": 211,
+      "word_target": 1200,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs3",
+        "fs1"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.030000000000000027,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch1_s2",
+      "chapter_index": 1,
+      "scene_index": 2,
+      "content": "下午的会议开了一个半小时。植入体在密闭空间里更活跃——十几个人的情绪信号叠加在一起，像一锅缓慢沸腾的汤。\n\n沈语冰一直观察陈静。陈静坐在长桌左侧第三个位置，肢体语言没有异常，在合适的时候点头。情绪信号仍然是零。",
+      "word_count": 105,
+      "word_target": 800,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "fast",
+      "quality": {
+        "repetition_rate": 0.010000000000000009,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch1_s3",
+      "chapter_index": 1,
+      "scene_index": 3,
+      "content": "沈语冰调出共感科技的内部系统，搜索了陈静的植入体状态报告。报告显示一切正常。\n\n但报告测的是设备。它测不了陈静。\n\n她低头看自己的左手。小指和无名指没有知觉。发麻的范围在扩大——两周前还只是指尖，现在已经蔓延到第二个指节。\n\n她登录植入体用户健康数据库，搜索\"情绪信号异常\"。零条结果。换了个搜索词，三条匿名反馈。第三条只有一句话：\"我周围的人好像都不再有情绪了。\"\n\n提交者的植入体编号对应陈静。",
+      "word_count": 199,
+      "word_target": 1000,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs3"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.005319148936170248,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch2_s1",
+      "chapter_index": 2,
+      "scene_index": 1,
+      "content": "第二天周五，沈语冰提前半小时到公司。九点十二分，陈静来了。走路姿态正常，步幅稳定。情绪信号：零。\n\n沈语冰把注意力收回来，打开数据分析平台。脑子分了一半在别处。",
+      "word_count": 80,
+      "word_target": 600,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "fast",
+      "quality": {
+        "repetition_rate": 0.0,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch2_s2",
+      "chapter_index": 2,
+      "scene_index": 2,
+      "content": "中午食堂，苏映端着餐盘坐到她对面。\n\n\"我在跑一个实验，跟植入体的信号频谱有关。\"苏映用筷子戳着西兰花，\"我在分析植入体接收到的情绪信号中，是否存在我们还没识别出的频率模式。\"\n\n沈语冰停下筷子。\"你是说，植入体在接收情绪信号时，可能漏掉了某些频率？\"\n\n\"不是漏掉，\"苏映摇头，\"是被过滤了。如果那些被切除的不是噪声呢？\"\n\n沈语冰的植入体发热了。耳后接口处的金属微微发烫，37.8°C，比昨天又高了。",
+      "word_count": 202,
+      "word_target": 1000,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs1"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.010471204188481686,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch2_s3",
+      "chapter_index": 2,
+      "scene_index": 3,
+      "content": "下午，沈语冰调取了共感科技所有植入体用户的匿名健康报告。她设了一个筛选条件：过去六个月内，月均信号强度下降超过50%的用户。\n\n四十七条结果。\n\n排在第一位的用户，信号强度降到了零。完全归零。注册时间和陈静同一批次，同一个激活地点。\n\n左手小指的麻木感比早上更明显了，无名指的第二指节也开始发麻。\n\n这不是设备故障。",
+      "word_count": 158,
+      "word_target": 800,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs3"
+      ],
+      "quality_mode": "fast",
+      "quality": {
+        "repetition_rate": 0.006802721088435382,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch2_s4",
+      "chapter_index": 2,
+      "scene_index": 4,
+      "content": "下班后沈语冰去了陈静住的小区。五十米外，植入体勉强能工作。信号模糊，但她能确认——陈静的情绪信号仍然是零。\n\n她走到一个小公园，坐在长椅上开始理线索。四条线索指向一个被压制的真相：共感科技的官方健康数据库里，\"情绪信号异常\"的搜索结果是零。不是没有人报告，是有人把报告压下去了。\n\n她给苏映发了一条消息：\"你说的那个有结构的信号——能给我看看原始数据吗？\"\n\n苏映回复：\"明天来实验室。别让别人看到。\"",
+      "word_count": 201,
+      "word_target": 800,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.00520833333333337,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch3_s1",
+      "chapter_index": 3,
+      "scene_index": 1,
+      "content": "周一上午，沈语冰在大厅被一个中年男人拦住了。\n\n\"你是沈语冰？共感科技的？\"他穿一件旧夹克，眼神锐利但不攻击。他的情绪信号是压抑的暗红色——愤怒被压在很深的地方。\n\n\"我叫姜北辰。前刑警。\"他没废话，\"我女儿出事了。我需要你用植入体看看她。\"\n\n沈语冰看着他。\"你怎么知道我有植入体？\"\n\n\"我做了调查。\"姜北辰说，\"我不需要机器告诉我别人在想什么。但我需要你。\"",
+      "word_count": 182,
+      "word_target": 1000,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.005847953216374324,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch3_s2",
+      "chapter_index": 3,
+      "scene_index": 2,
+      "content": "姜北辰从车里拿出一叠纸。是画——蜡笔画，色彩鲜艳但线条混乱。\n\n\"我女儿画的。她今年八岁。\"姜北辰把画递过来，手微微发抖。\n\n沈语冰翻看着。前几张是普通的儿童画——房子、太阳、花。但从第七张开始，画面上反复出现一种图案：密集的波浪线，一层叠一层，像心电图，但频率不对。波浪线覆盖了整张纸，把原来的房子和太阳都挤到了角落。\n\n\"她反复画这个。每天画。\"姜北辰的声音很平，\"我不知道这是什么。\"\n\n沈语冰盯着那些波形。她见过类似的图案——在苏映实验室的频率分析图上。",
+      "word_count": 231,
+      "word_target": 1200,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs5"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.009090909090909038,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch3_s3",
+      "chapter_index": 3,
+      "scene_index": 3,
+      "content": "咖啡馆里，两人面对面坐着。姜北辰的咖啡没加糖，沈语冰的茶没碰。\n\n\"我不信任那东西。\"姜北辰指了指沈语冰的耳后，\"机器读出来的情绪，和真的情绪不是一回事。\"\n\n\"但它能发现你发现不了的东西。\"沈语冰说。\n\n\"比如我女儿没有情绪了？\"姜北辰的暗红色信号闪了一下。\"我不需要机器告诉我这个。我看得出来。\"\n\n\"那你来找我能帮你什么？\"\n\n\"确认。\"姜北辰说，\"然后找出是谁干的。\"",
+      "word_count": 188,
+      "word_target": 800,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "fast",
+      "quality": {
+        "repetition_rate": 0.040000000000000036,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch4_s1",
+      "chapter_index": 4,
+      "scene_index": 1,
+      "content": "姜北辰的家在浦东一个老小区。客厅整洁但冷清，没有孩子的笑声。\n\n姜晓坐在沙发上看电视。八岁，扎着马尾，表情平静得过分。屏幕上放着动画片，但她没有在看——眼睛对焦在某个不存在的地方。\n\n沈语冰站在她三米外，启动了植入体的主动扫描模式。\n\n零。绝对零。和陈静一样的白纸。\n\n但更近的距离下，沈语冰注意到了一个细节：在零信号的边缘，有一圈极微弱的波纹。不是情绪——是某种震动。像有什么东西在水面下呼吸。\n\n她没说出来。",
+      "word_count": 206,
+      "word_target": 1200,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.0,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch4_s2",
+      "chapter_index": 4,
+      "scene_index": 2,
+      "content": "傍晚，沈语冰走出电梯，在走廊里遇到了贺明轩。\n\n\"小沈？\"他笑着，温和得体。他的情绪信号是恒定的浅金色——太稳定了，稳定到不像活人。沈语冰从未见过有人能把自己的情绪控制得如此完美。\n\n\"听说你最近在做一些……数据调研？\"贺明轩的语气随意，但他的目光停在她耳后的植入体接口上。\n\n\"常规分析。\"沈语冰说。\n\n\"当然。\"贺明轩点头，\"只是提醒你，有些数据涉及用户隐私。小心点总是好的。\"\n\n他拍了拍她的肩膀——手指只碰了布料，刻意避开了皮肤。",
+      "word_count": 219,
+      "word_target": 800,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs2"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.004854368932038833,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch5_s1",
+      "chapter_index": 5,
+      "scene_index": 1,
+      "content": "苏映的实验室在共感科技地下二层。门禁需要特殊权限，苏映帮她刷了卡。\n\n\"我找到了。\"苏映打开屏幕，上面是一张频率分析图。\"这个频率模式不在任何已知情绪频段内，但它有结构。有结构的信号不是噪声。\"\n\n沈语冰看着屏幕上的波形。她和姜晓画上的波浪线几乎一模一样。\n\n\"我认为，\"苏映压低声音，\"情绪频谱中存在某种自组织模式。类似电磁波中的驻波。它们以人类情绪为能量源，通过共振吸收信号。\"\n\n\"你在说——有东西在吃人类的情绪？\"\n\n苏映没回答。她的蓝色脉冲在加速。",
+      "word_count": 229,
+      "word_target": 1200,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs1"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.0,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    },
+    {
+      "scene_id": "ch5_s2",
+      "chapter_index": 5,
+      "scene_index": 2,
+      "content": "沈语冰的植入体突然剧烈发热。38.5°C。她本能地按住耳后。\n\n同一瞬间，她明白了。死区不是\"没有情绪\"。死区是\"情绪被吃掉了\"。\n\n陈静还在笑，还在说话，还在写会议纪要。但她的情绪——那些本该在植入体上显示为橙黄色和灰白条纹的东西——已经被某种存在吸收殆尽。\n\n而她自己呢？左手从手腕以下完全失去了知觉。那种麻木不是副作用。那是被标记的痕迹。\n\n\"它们不是在破坏情绪，\"沈语冰说，\"它们在吃。\"\n\n苏映看着她，眼神里有恐惧也有确认。\"对。它们在进食。\"",
+      "word_count": 227,
+      "word_target": 1000,
+      "layers_used": [
+        "感官",
+        "内省",
+        "对话",
+        "推进"
+      ],
+      "foreshadow_planted": [
+        "fs3",
+        "fs1"
+      ],
+      "quality_mode": "precision",
+      "quality": {
+        "repetition_rate": 0.0,
+        "ai_ism_count": 0,
+        "passed": true,
+        "issues": []
+      }
+    }
+  ],
+  "quality_report": {
+    "overall": {
+      "repetition_rate": 0.06371191135734067,
+      "ai_ism_count": 0,
+      "passed": true,
+      "issues": []
+    },
+    "per_paragraph": [
+      {
+        "scene_id": "ch1_s1",
+        "word_count": 211,
+        "quality": {
+          "repetition_rate": 0.030000000000000027,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch1_s2",
+        "word_count": 105,
+        "quality": {
+          "repetition_rate": 0.010000000000000009,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch1_s3",
+        "word_count": 199,
+        "quality": {
+          "repetition_rate": 0.005319148936170248,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch2_s1",
+        "word_count": 80,
+        "quality": {
+          "repetition_rate": 0.0,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch2_s2",
+        "word_count": 202,
+        "quality": {
+          "repetition_rate": 0.010471204188481686,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch2_s3",
+        "word_count": 158,
+        "quality": {
+          "repetition_rate": 0.006802721088435382,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch2_s4",
+        "word_count": 201,
+        "quality": {
+          "repetition_rate": 0.00520833333333337,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch3_s1",
+        "word_count": 182,
+        "quality": {
+          "repetition_rate": 0.005847953216374324,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch3_s2",
+        "word_count": 231,
+        "quality": {
+          "repetition_rate": 0.009090909090909038,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch3_s3",
+        "word_count": 188,
+        "quality": {
+          "repetition_rate": 0.040000000000000036,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch4_s1",
+        "word_count": 206,
+        "quality": {
+          "repetition_rate": 0.0,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch4_s2",
+        "word_count": 219,
+        "quality": {
+          "repetition_rate": 0.004854368932038833,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch5_s1",
+        "word_count": 229,
+        "quality": {
+          "repetition_rate": 0.0,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      },
+      {
+        "scene_id": "ch5_s2",
+        "word_count": 227,
+        "quality": {
+          "repetition_rate": 0.0,
+          "ai_ism_count": 0,
+          "passed": true,
+          "issues": []
+        }
+      }
+    ]
+  },
+  "foreshadow_status": [
+    {
+      "foreshadow_id": "fs4",
+      "planted_chapter": "第二幕Ch13",
+      "planted_location": "苏映接收到的共振体模仿情绪",
+      "detail": {
+        "detail": "苏映接收到的共振体模仿情绪",
+        "harvest": "第三幕Ch20",
+        "harvest_detail": "共振体在练习理解人类——它们想回来"
+      },
+      "harvested": false,
+      "harvested_chapter": null,
+      "harvested_location": null,
+      "created_at": "2026-08-07T09:46:08",
+      "updated_at": "2026-08-07T09:46:08"
+    },
+    {
+      "foreshadow_id": "fs5",
+      "planted_chapter": "第3章",
+      "planted_location": "场景 ch3_s2",
+      "detail": {
+        "action": "埋设",
+        "detail": "女儿画作中的重复波形图案",
+        "scene_id": "ch3_s2"
+      },
+      "harvested": false,
+      "harvested_chapter": null,
+      "harvested_location": null,
+      "created_at": "2026-08-07T10:34:52",
+      "updated_at": "2026-08-07T10:34:52"
+    },
+    {
+      "foreshadow_id": "fs2",
+      "planted_chapter": "第4章",
+      "planted_location": "场景 ch4_s2",
+      "detail": {
+        "action": "埋设",
+        "detail": "贺明轩从不触碰植入体用户",
+        "scene_id": "ch4_s2"
+      },
+      "harvested": false,
+      "harvested_chapter": null,
+      "harvested_location": null,
+      "created_at": "2026-08-07T10:34:52",
+      "updated_at": "2026-08-07T10:34:52"
+    },
+    {
+      "foreshadow_id": "fs3",
+      "planted_chapter": "第5章",
+      "planted_location": "场景 ch5_s2",
+      "detail": {
+        "action": "推进",
+        "detail": "失聪区域扩大到左前臂",
+        "scene_id": "ch5_s2"
+      },
+      "harvested": false,
+      "harvested_chapter": null,
+      "harvested_location": null,
+      "created_at": "2026-08-07T10:34:52",
+      "updated_at": "2026-08-07T10:34:52"
+    },
+    {
+      "foreshadow_id": "fs1",
+      "planted_chapter": "第5章",
+      "planted_location": "场景 ch5_s2",
+      "detail": {
+        "action": "推进",
+        "detail": "植入体温度38.5°C",
+        "scene_id": "ch5_s2"
+      },
+      "harvested": false,
+      "harvested_chapter": null,
+      "harvested_location": null,
+      "created_at": "2026-08-07T10:34:52",
+      "updated_at": "2026-08-07T10:34:52"
+    }
+  ]
+}

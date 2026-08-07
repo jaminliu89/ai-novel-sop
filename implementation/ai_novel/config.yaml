@@ -1,0 +1,53 @@
+# ===================================================================
+# AI 小说写作流水线 —— 模型与全局配置
+# ===================================================================
+
+# DeepSeek 配置（OpenAI 兼容协议）
+deepseek:
+  api_key: "YOUR_DEEPSEEK_API_KEY"        # 占位符，实际使用时替换或通过环境变量 DEEPSEEK_API_KEY 注入
+  base_url: "https://api.deepseek.com/v1"
+  models:
+    flash: "deepseek-chat"                # 快速模型，用于发散/收敛等高频低延迟任务
+    pro: "deepseek-reasoner"              # 推理模型，用于审视/解码等需要深度思考的任务
+
+# Claude 配置（Anthropic SDK）
+claude:
+  api_key: "YOUR_CLAUDE_API_KEY"          # 占位符，实际使用时替换或通过环境变量 ANTHROPIC_API_KEY 注入
+  model: "claude-sonnet-4-20250514"
+
+# Agent 角色 → 模型路由映射
+# coordinator / distiller 使用 Claude（元认知与精炼需要更强语义能力）
+# gardener / pruner / curator 使用 deepseek_flash（高频任务，追求速度）
+# inspector / decoder 使用 deepseek_pro（审视与解码需要深度推理）
+agent_model_mapping:
+  coordinator: "claude"
+  distiller: "claude"
+  gardener: "deepseek_flash"
+  pruner: "deepseek_flash"
+  curator: "deepseek_flash"
+  inspector: "deepseek_pro"
+  decoder: "deepseek_pro"
+
+# 质量阈值配置（监工 Inspector 判定依据）
+quality:
+  thresholds:
+    repetition_rate: 0.08         # 重复率上限：超出则判为冗余
+    voice_deviation: 0.3          # 声音偏离度上限：超出则判为人设漂移
+    foreshadow_recovery: 0.9      # 伏笔回收率下限：低于则判为伏笔未闭环
+    ai_ism_count: 0               # AI 腔计数上限：允许 0 处
+    semantic_diversity: 0.6       # 语义多样性下限：低于则候选同质化
+
+# 存储配置
+storage:
+  sqlite_path: "novel_state.db"   # SQLite 数据库文件名（相对 ai_novel 包根目录）
+  snapshots_dir: "snapshots/"     # JSON 快照目录（相对 ai_novel 包根目录）
+  chroma_path: "chroma_db/"       # ChromaDB 持久化目录（相对 ai_novel 包根目录）
+
+# 小说元信息
+novel:
+  genre: "科幻悬疑"               # 题材，决定 few-shot 配比
+  language: "zh"                  # 写作语言
+  target_words: 100000            # 目标字数
+  few_shot_ratio:                 # few-shot 语料配比（按题材权重分配）
+    scifi: 0.6
+    mystery: 0.4
