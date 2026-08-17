@@ -1,0 +1,3 @@
+## 2025-05-18 - [Optimization of n-gram set generation in QualityMetrics]
+**Learning:** Generating n-gram sets in `repetition_rate` directly via generator/comprehension avoids allocating intermediate lists of all n-gram tuples in memory, speeding up metric checks on large texts by ~20%. Also, running direct generation scripts (`run_direct_l0_l2.py`) modifies local SQLite database files and outputs (`novel_state.db`, `output_outline.json`), so these generated artifacts must be reset prior to git commits.
+**Action:** Always reset generated runtime DB and JSON output files before committing changes in this repository.

@@ -177,12 +177,13 @@ class QualityMetrics:
         :return: 重复率（0.0 ~ 1.0）
         """
         tokens: list[str] = self._tokenize(text)
-        ngrams: list[tuple[str, ...]] = self._ngrams(tokens, n)
-        if not ngrams:
+        total: int = len(tokens) - n + 1
+        if total <= 0:
             return 0.0
 
-        total: int = len(ngrams)
-        unique: int = len(set(ngrams))
+        # Optimization: Generate unique n-gram set directly via set comprehension
+        # to avoid constructing a temporary list of all n-gram tuples in memory.
+        unique: int = len({tuple(tokens[i : i + n]) for i in range(total)})
         return 1.0 - (unique / total)
 
     # ------------------------------------------------------------------
