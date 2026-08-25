@@ -24,6 +24,7 @@ VoiceDriftMonitor 监测角色生成轨迹的声音漂移，
 
 from __future__ import annotations
 
+import collections
 import hashlib
 import logging
 import math
@@ -415,8 +416,12 @@ class VoiceProfile:
         """
         hash 向量降级方案：将文本映射为固定维度的向量。
 
-        使用 hash trick：对每个 token 取 hash 值映射到维度，
-        累加计数后 L2 归一化。
+        使用 hash trick：对每个 unique token 计算 MD5 并在向量中按词频 (count) 累加，
+        最后进行 L2 归一化。
+
+        性能优化说明 (Bolt):
+        使用 collections.Counter 先对 token 频次建模，由 O(N_tokens) 次 MD5 Hash 计算
+        降低为 O(N_unique_tokens) 次，显著减少 CPU 开销（按词频批量累加，避免重复求 MD5 散列）。
 
         :param text: 输入文本
         :param dim: 向量维度
@@ -429,11 +434,12 @@ class VoiceProfile:
             else [ch for ch in text if not ch.isspace()]
         )
 
-        for token in tokens:
+        counts = collections.Counter(tokens)
+        for token, count in counts.items():
             # 使用 MD5 hash 取模确定维度索引
             h: int = int(hashlib.md5(token.encode("utf-8")).hexdigest(), 16)
             idx: int = h % dim
-            vec[idx] += 1.0
+            vec[idx] += count
 
         # L2 归一化
         norm: float = math.sqrt(sum(v * v for v in vec))
