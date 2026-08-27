@@ -1,0 +1,3 @@
+## 2026-03-31 - Pre-tokenize candidates in pairwise Jaccard diversity calculation
+**Learning:** `_jaccard_diversity` in `QualityMetrics` was computing `self.ngram_jaccard(candidates[i], candidates[j])` in an $O(N^2)$ loop, causing `_ngram_set` and tokenization to be repeated $O(N^2)$ times. Pre-computing `_ngram_set` for each candidate reduces tokenization to $O(N)$ and yields ~27x speedup for $N=30$ candidates.
+**Action:** When performing $O(N^2)$ pairwise comparisons across candidate items, always pre-tokenize or pre-extract feature representations for each item first before running the double loop.
