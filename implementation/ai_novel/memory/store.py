@@ -78,26 +78,30 @@ class _BaseSQLiteStore:
         self.db_path: Path = Path(db_path)
         # 确保父目录存在
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        # 性能优化：标记实例是否已完成建表与 WAL 初始化，避免每次查询重复运行 DDL
+        self._initialized: bool = False
 
     @asynccontextmanager
     async def _conn(self) -> AsyncIterator[aiosqlite.Connection]:
-        """连接上下文管理器：打开新连接 → 开启 WAL → yield → 自动关闭。
+        """连接上下文管理器：打开新连接 → yield → 自动关闭。
 
         每次操作使用独立连接，避免跨协程的生命周期耦合。
-        注意：aiosqlite.Connection 同一实例的 await 与 async with 不可叠加使用
-        （会重复启动后台线程），因此本方法直接以 async with 管理，调用方
-        不应对返回值再 await。
+        注意：PRAGMA journal_mode=WAL 仅需在建表初始化阶段设置一次（SQLite 会持久化在 DB header 中），
+        避免每次连接都重复发 WAL PRAGMA 指令带来额外的 I/O 开销。
         """
-        # aiosqlite.connect 返回 Connection 对象，async with 负责启动后台线程并关闭
         async with aiosqlite.connect(str(self.db_path)) as db:
-            await db.execute("PRAGMA journal_mode=WAL;")
             yield db
 
     async def _init_schema(self, ddl: str) -> None:
-        """执行建表 DDL（IF NOT EXISTS 幂等）。"""
+        """执行建表 DDL（IF NOT EXISTS 幂等）。短路避免重复初始化。"""
+        if self._initialized:
+            return
         async with self._conn() as db:
+            # WAL 模式开启一次并持久化在数据库文件头中
+            await db.execute("PRAGMA journal_mode=WAL;")
             await db.executescript(ddl)
             await db.commit()
+        self._initialized = True
 
 
 class NovelStateStore(_BaseSQLiteStore):
@@ -122,7 +126,9 @@ class NovelStateStore(_BaseSQLiteStore):
         self.book_id: str = book_id
 
     async def init(self) -> None:
-        """建表并确保存在默认行。"""
+        """建表并确保存在默认行。短路避免重复初始化。"""
+        if self._initialized:
+            return
         await self._init_schema(self._DDL)
         async with self._conn() as db:
             await db.execute(
@@ -130,6 +136,7 @@ class NovelStateStore(_BaseSQLiteStore):
                 (self.book_id,),
             )
             await db.commit()
+        self._initialized = True
 
     async def get_state(self) -> dict[str, Any]:
         """读取当前状态字典。无记录时返回空字典。"""
