@@ -1,0 +1,3 @@
+## 2026-03-31 - SQLite PRAGMA WAL & Schema DDL Overhead in Transient Async Connections
+**Learning:** In async SQLite stores (like `aiosqlite`), executing `PRAGMA journal_mode=WAL;` and schema DDL (`executescript`) on every transient connection creates massive disk I/O and SQL parsing overhead. Setting `journal_mode=WAL` once persists the setting in the database file header across future connections, making repeated PRAGMA calls redundant.
+**Action:** Short-circuit `_init_schema` and `init()` calls with instance-level `_initialized` flags, and issue `PRAGMA journal_mode=WAL;` only during initial schema creation.
