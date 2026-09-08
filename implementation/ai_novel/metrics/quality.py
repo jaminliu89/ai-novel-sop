@@ -297,12 +297,18 @@ class QualityMetrics:
     def _jaccard_diversity(self, candidates: list[str]) -> float:
         """基于 Jaccard 距离的语义多样性降级方案。"""
         n: int = len(candidates)
+        if n < 2:
+            return 0.0
+
+        # ⚡ Bolt Optimization: Precompute n-gram sets for candidates once (O(N) instead of O(N^2) tokenizations)
+        ngram_sets = [self._ngram_set(c, n=3) for c in candidates]
+
         total_distance: float = 0.0
         pair_count: int = 0
 
         for i in range(n):
             for j in range(i + 1, n):
-                jaccard_sim: float = self.ngram_jaccard(candidates[i], candidates[j], n=3)
+                jaccard_sim: float = self._jaccard_similarity_sets(ngram_sets[i], ngram_sets[j])
                 total_distance += 1.0 - jaccard_sim
                 pair_count += 1
 
@@ -416,6 +422,18 @@ class QualityMetrics:
     # n-gram Jaccard 相似度
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _jaccard_similarity_sets(set1: set, set2: set) -> float:
+        """计算两个 n-gram 集合之间的 Jaccard 相似度。"""
+        if not set1 and not set2:
+            return 1.0
+        if not set1 or not set2:
+            return 0.0
+
+        intersection: set = set1 & set2
+        union: set = set1 | set2
+        return len(intersection) / len(union)
+
     def ngram_jaccard(self, text1: str, text2: str, n: int = 4) -> float:
         """
         n-gram Jaccard 相似度（用于版权检测）。
@@ -430,11 +448,4 @@ class QualityMetrics:
         set1: set[tuple[str, ...]] = self._ngram_set(text1, n)
         set2: set[tuple[str, ...]] = self._ngram_set(text2, n)
 
-        if not set1 and not set2:
-            return 1.0
-        if not set1 or not set2:
-            return 0.0
-
-        intersection: set[tuple[str, ...]] = set1 & set2
-        union: set[tuple[str, ...]] = set1 | set2
-        return len(intersection) / len(union)
+        return self._jaccard_similarity_sets(set1, set2)
