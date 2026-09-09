@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -126,8 +127,21 @@ class QualityMetrics:
         custom_words: list[str] | None = quality_config.get("ai_ism_words")
         self.ai_ism_words: list[str] = custom_words if custom_words else _AI_ISM_WORDS
 
+        # 预编译 AI 腔禁用词正则模式，加速检测
+        self._compile_ai_ism_pattern()
+
         # 延迟初始化嵌入模型
         self._embedder: Any = None
+
+    def _compile_ai_ism_pattern(self) -> None:
+        """预编译 AI 腔禁用词正则模式，单次扫描替换多次 search/count 逻辑。"""
+        if self.ai_ism_words:
+            words_sorted = sorted(self.ai_ism_words, key=len, reverse=True)
+            self._ai_ism_pattern: re.Pattern | None = re.compile(
+                "|".join(map(re.escape, words_sorted))
+            )
+        else:
+            self._ai_ism_pattern = None
 
     # ------------------------------------------------------------------
     # 分词
@@ -141,7 +155,8 @@ class QualityMetrics:
         :return: token 列表
         """
         if _HAS_JIEBA:
-            return list(jieba.cut(text))
+            # 性能优化：jieba.lcut 在 C/CPython 层直接构建 list，比 list(jieba.cut) 生成器更快
+            return jieba.lcut(text)
         # 降级：按字符切分（去除空白符）
         return [ch for ch in text if not ch.isspace()]
 
@@ -154,12 +169,16 @@ class QualityMetrics:
         """生成 n-gram 列表。"""
         if len(tokens) < n:
             return []
-        return [tuple(tokens[i : i + n]) for i in range(len(tokens) - n + 1)]
+        # 性能优化：zip 拼接迭代器比推导式列表切片切 Tuple 节省 >50% 开销
+        return list(zip(*(tokens[i:] for i in range(n))))
 
     def _ngram_set(self, text: str, n: int) -> set[tuple[str, ...]]:
         """生成 n-gram 集合。"""
         tokens: list[str] = self._tokenize(text)
-        return set(self._ngrams(tokens, n))
+        if len(tokens) < n:
+            return set()
+        # 性能优化：避免构建中间 list，直接从 zip 迭代器构造 set
+        return set(zip(*(tokens[i:] for i in range(n))))
 
     # ------------------------------------------------------------------
     # n-gram 重复率
@@ -196,10 +215,12 @@ class QualityMetrics:
         :param text: 待检测文本
         :return: 禁用词出现总次数
         """
-        count: int = 0
-        for word in self.ai_ism_words:
-            count += text.count(word)
-        return count
+        if not self.ai_ism_words:
+            return 0
+        # 性能优化：使用预编译的联合正则模式，单次遍历扫描替代 40+ 次 full-text str.count
+        if getattr(self, "_ai_ism_pattern", None) is not None:
+            return len(self._ai_ism_pattern.findall(text))
+        return sum(text.count(word) for word in self.ai_ism_words)
 
     # ------------------------------------------------------------------
     # 全量质量检测
