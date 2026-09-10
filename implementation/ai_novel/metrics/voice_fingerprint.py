@@ -24,6 +24,7 @@ VoiceDriftMonitor 监测角色生成轨迹的声音漂移，
 
 from __future__ import annotations
 
+import functools
 import hashlib
 import logging
 import math
@@ -31,6 +32,19 @@ import re
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache(maxsize=256)
+def _tokenize_text(text: str) -> tuple[str, ...]:
+    """
+    声音指纹分词底层实现（使用 LRU 缓存避免相同文本的重复分词计算）。
+
+    :param text: 待分词文本
+    :return: token 元组（不可变类型，便于 LRU 缓存）
+    """
+    if _HAS_JIEBA:
+        return tuple(t for t in jieba.cut(text) if t.strip())
+    return tuple(ch for ch in text if not ch.isspace())
 
 # ------------------------------------------------------------------
 # 外部依赖降级处理
@@ -395,10 +409,8 @@ class VoiceProfile:
 
     @staticmethod
     def _tokenize(text: str) -> list[str]:
-        """分词：优先 jieba，降级为字符级。"""
-        if _HAS_JIEBA:
-            return [t for t in jieba.cut(text) if t.strip()]
-        return [ch for ch in text if not ch.isspace()]
+        """分词：优先 jieba，降级为字符级（调用 LRU 缓存的分词函数）。"""
+        return list(_tokenize_text(text))
 
     def _get_embedder(self) -> Any:
         """惰性加载嵌入模型。"""
@@ -423,11 +435,7 @@ class VoiceProfile:
         :return: 归一化后的 hash 向量
         """
         vec: list[float] = [0.0] * dim
-        tokens: list[str] = (
-            [t for t in jieba.cut(text) if t.strip()]
-            if _HAS_JIEBA
-            else [ch for ch in text if not ch.isspace()]
-        )
+        tokens: tuple[str, ...] = _tokenize_text(text)
 
         for token in tokens:
             # 使用 MD5 hash 取模确定维度索引

@@ -17,10 +17,25 @@
 from __future__ import annotations
 
 import asyncio
+import functools
 import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)
+
+
+@functools.lru_cache(maxsize=256)
+def _tokenize_text(text: str) -> tuple[str, ...]:
+    """
+    分词底层实现（使用 LRU 缓存避免相同文本的重复分词计算）。
+
+    :param text: 待分词文本
+    :return: token 元组（不可变类型，便于 LRU 缓存）
+    """
+    if _HAS_JIEBA:
+        return tuple(jieba.cut(text))
+    # 降级：按字符切分（去除空白符）
+    return tuple(ch for ch in text if not ch.isspace())
 
 # ------------------------------------------------------------------
 # 外部依赖降级处理
@@ -135,15 +150,12 @@ class QualityMetrics:
 
     def _tokenize(self, text: str) -> list[str]:
         """
-        分词：优先使用 jieba，降级为字符级切分。
+        分词：优先使用 jieba，降级为字符级切分（调用 LRU 缓存的底层分词函数）。
 
         :param text: 待分词文本
         :return: token 列表
         """
-        if _HAS_JIEBA:
-            return list(jieba.cut(text))
-        # 降级：按字符切分（去除空白符）
-        return [ch for ch in text if not ch.isspace()]
+        return list(_tokenize_text(text))
 
     # ------------------------------------------------------------------
     # n-gram 工具
@@ -297,12 +309,31 @@ class QualityMetrics:
     def _jaccard_diversity(self, candidates: list[str]) -> float:
         """基于 Jaccard 距离的语义多样性降级方案。"""
         n: int = len(candidates)
+        if n < 2:
+            return 0.0
+
         total_distance: float = 0.0
         pair_count: int = 0
 
+        # 性能优化：预先提取各候选文本的 3-gram 集合，
+        # 将 pairwise 比较时的分词复杂度从 O(N^2) 降低为 O(N)。
+        ngram_sets: list[set[tuple[str, ...]]] = [
+            self._ngram_set(candidate, n=3) for candidate in candidates
+        ]
+
         for i in range(n):
+            set1 = ngram_sets[i]
             for j in range(i + 1, n):
-                jaccard_sim: float = self.ngram_jaccard(candidates[i], candidates[j], n=3)
+                set2 = ngram_sets[j]
+                if not set1 and not set2:
+                    jaccard_sim = 1.0
+                elif not set1 or not set2:
+                    jaccard_sim = 0.0
+                else:
+                    intersection = len(set1 & set2)
+                    union = len(set1 | set2)
+                    jaccard_sim = intersection / union if union > 0 else 0.0
+
                 total_distance += 1.0 - jaccard_sim
                 pair_count += 1
 
