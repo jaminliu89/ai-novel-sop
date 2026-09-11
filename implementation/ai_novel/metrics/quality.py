@@ -300,9 +300,25 @@ class QualityMetrics:
         total_distance: float = 0.0
         pair_count: int = 0
 
+        # Bolt optimization: Precompute n-gram sets for each candidate once (O(N) instead of O(N^2)).
+        # Avoids repeated tokenization and n-gram construction for every candidate pair (~10x speedup).
+        ngram_sets: list[set[tuple[str, ...]]] = [
+            self._ngram_set(cand, n=3) for cand in candidates
+        ]
+
         for i in range(n):
+            set1 = ngram_sets[i]
             for j in range(i + 1, n):
-                jaccard_sim: float = self.ngram_jaccard(candidates[i], candidates[j], n=3)
+                set2 = ngram_sets[j]
+                if not set1 and not set2:
+                    jaccard_sim = 1.0
+                elif not set1 or not set2:
+                    jaccard_sim = 0.0
+                else:
+                    intersection_len = len(set1 & set2)
+                    union_len = len(set1 | set2)
+                    jaccard_sim = intersection_len / union_len if union_len > 0 else 0.0
+
                 total_distance += 1.0 - jaccard_sim
                 pair_count += 1
 

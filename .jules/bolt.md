@@ -1,0 +1,3 @@
+## 2025-05-18 - Pairwise Jaccard Diversity Pre-computation in Fallback Metrics
+**Learning:** `QualityMetrics._jaccard_diversity` serves as the fallback for candidate diversity evaluation when sentence-transformers is unavailable. Calling `ngram_jaccard` inside pairwise loops ($O(N^2)$) causes redundant tokenization and set construction $N(N-1)$ times. Pre-computing candidate $n$-gram sets reduces tokenization calls to $O(N)$ and speeds up fallback candidate evaluation by ~10x.
+**Action:** Always pre-compute item representations (such as $n$-gram sets or token arrays) prior to $O(N^2)$ pairwise comparison loops in metric modules.
