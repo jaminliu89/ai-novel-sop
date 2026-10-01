@@ -24,6 +24,7 @@ VoiceDriftMonitor 监测角色生成轨迹的声音漂移，
 
 from __future__ import annotations
 
+import collections
 import hashlib
 import logging
 import math
@@ -362,15 +363,27 @@ class VoiceProfile:
 
         features.extend([mean_len, variance, max_len, long_ratio])
 
-        # --- 功能词频率 ---
+        # --- 功能词频率与标点比率（性能优化：单次 Counter 统计单字符频率）---
+        counts = collections.Counter(text)
         total_chars: int = max(len(text), 1)
         for word in _FUNCTION_WORDS:
-            features.append(text.count(word) / total_chars)
+            # _FUNCTION_WORDS 均为单字
+            features.append(counts[word] / total_chars)
 
-        # --- 标点比率 ---
-        total_punct: int = sum(text.count(p) for p in _PUNCTUATION_ALL)
+        # 标点比率
+        total_punct: int = 0
+        for p in _PUNCTUATION_ALL:
+            if len(p) == 1:
+                total_punct += counts[p]
+            else:
+                total_punct += text.count(p)
+
+        denom_punct: int = max(total_punct, 1)
         for p in _PUNCT_TYPES:
-            features.append(text.count(p) / max(total_punct, 1))
+            if len(p) == 1:
+                features.append(counts[p] / denom_punct)
+            else:
+                features.append(text.count(p) / denom_punct)
 
         # --- TTR（类型-令牌比）---
         tokens: list[str] = self._tokenize(text)
@@ -397,7 +410,8 @@ class VoiceProfile:
     def _tokenize(text: str) -> list[str]:
         """分词：优先 jieba，降级为字符级。"""
         if _HAS_JIEBA:
-            return [t for t in jieba.cut(text) if t.strip()]
+            # 性能优化：jieba.lcut 比 jieba.cut 生成器更快
+            return [t for t in jieba.lcut(text) if t.strip()]
         return [ch for ch in text if not ch.isspace()]
 
     def _get_embedder(self) -> Any:
@@ -424,7 +438,7 @@ class VoiceProfile:
         """
         vec: list[float] = [0.0] * dim
         tokens: list[str] = (
-            [t for t in jieba.cut(text) if t.strip()]
+            [t for t in jieba.lcut(text) if t.strip()]
             if _HAS_JIEBA
             else [ch for ch in text if not ch.isspace()]
         )
