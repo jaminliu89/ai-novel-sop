@@ -64,7 +64,8 @@ def _segment(text: str) -> str:
     if not text:
         return ""
     if _JIEBA_AVAILABLE:
-        return " ".join(w for w in jieba.cut(text) if w.strip())
+        # 性能优化 (Bolt): jieba.lcut 在 C/CPython 层直接构建 list，比 list(jieba.cut) / 生成器遍历更快
+        return " ".join(w for w in jieba.lcut(text) if w.strip())
     # 降级：逐字符切分（标点等非词字符保留为噪声 token，影响有限）
     return " ".join(text)
 
@@ -244,9 +245,16 @@ class _TfidfBackend:
             # 无 scikit-learn 时退化为子串匹配
             return self._substring_match(bucket, query_text, n_results)
 
-        corpus = [item["document"] for item in bucket]
         # 对语料与查询做中文预分词，避免默认 token_pattern 把整段中文当作单 token
-        seg_corpus = [_segment(doc) for doc in corpus]
+        # 性能优化 (Bolt): 按需缓存语料文档预分词结果（_seg_doc），避免每次查询重复对全量语料做分词
+        seg_corpus: list[str] = []
+        for item in bucket:
+            seg_doc = item.get("_seg_doc")
+            if seg_doc is None:
+                seg_doc = _segment(item["document"])
+                item["_seg_doc"] = seg_doc
+            seg_corpus.append(seg_doc)
+
         seg_query = _segment(query_text)
         try:
             # token_pattern 接受 1 个及以上词字符，兼容逐字符切分与 jieba 词级切分
