@@ -64,7 +64,8 @@ def _segment(text: str) -> str:
     if not text:
         return ""
     if _JIEBA_AVAILABLE:
-        return " ".join(w for w in jieba.cut(text) if w.strip())
+        # 性能优化 (Bolt): jieba.lcut 比 jieba.cut 生成器直接在 C/CPython 层构建 list 更快
+        return " ".join(w for w in jieba.lcut(text) if w.strip())
     # 降级：逐字符切分（标点等非词字符保留为噪声 token，影响有限）
     return " ".join(text)
 
@@ -182,6 +183,8 @@ class _TfidfBackend:
         self._store_file: Path = self.persist_path / "tfidf_store.json"
         # 内存中的全量文档：{collection: [{"id","document","metadata"}]}
         self._data: dict[str, list[dict]] = self._load()
+        # 性能优化 (Bolt): TF-IDF 矩阵与 vectorizer 缓存 {collection: (vectorizer, corpus_tfidf)}
+        self._tfidf_cache: dict[str, tuple[Any, Any]] = {}
 
     def _load(self) -> dict[str, list[dict]]:
         """从磁盘加载已持久化的文档。"""
@@ -209,16 +212,20 @@ class _TfidfBackend:
         bucket = self._data.setdefault(collection, [])
         index_map = {item["id"]: i for i, item in enumerate(bucket)}
         for doc, meta, doc_id in zip(documents, metadatas, ids):
+            # 性能优化 (Bolt): 写入文档时同时预分词缓存 `_seg`，避免 query 时重复对 static 文档分词
             entry = {
                 "id": doc_id,
                 "document": doc,
                 "metadata": _sanitize_metadata(meta),
+                "_seg": _segment(doc),
             }
             if doc_id in index_map:
                 bucket[index_map[doc_id]] = entry
             else:
                 bucket.append(entry)
                 index_map[doc_id] = len(bucket) - 1
+        # 文档变更时失效 TF-IDF 缓存
+        self._tfidf_cache.pop(collection, None)
         self._save()
 
     def query(
@@ -244,16 +251,32 @@ class _TfidfBackend:
             # 无 scikit-learn 时退化为子串匹配
             return self._substring_match(bucket, query_text, n_results)
 
-        corpus = [item["document"] for item in bucket]
-        # 对语料与查询做中文预分词，避免默认 token_pattern 把整段中文当作单 token
-        seg_corpus = [_segment(doc) for doc in corpus]
         seg_query = _segment(query_text)
+
+        # 性能优化 (Bolt): 仅在未指定 where 过滤且集合已有 TF-IDF 缓存时复用 vectorizer & corpus_tfidf；
+        # 否则懒加载预分词并构建/更新 TF-IDF 矩阵
+        if where is None and collection in self._tfidf_cache:
+            vectorizer, corpus_tfidf = self._tfidf_cache[collection]
+        else:
+            # 延迟确保每个 item 都有 `_seg` (支持磁盘加载无 `_seg` 的历史数据)
+            for item in bucket:
+                if "_seg" not in item:
+                    item["_seg"] = _segment(item["document"])
+            seg_corpus = [item["_seg"] for item in bucket]
+
+            try:
+                vectorizer = TfidfVectorizer(token_pattern=r"(?u)\w+")
+                corpus_tfidf = vectorizer.fit_transform(seg_corpus)
+                if where is None:
+                    self._tfidf_cache[collection] = (vectorizer, corpus_tfidf)
+            except ValueError as exc:
+                logger.warning("TF-IDF 构建失败，退化为子串匹配: %s", exc)
+                return self._substring_match(bucket, query_text, n_results)
+
         try:
-            # token_pattern 接受 1 个及以上词字符，兼容逐字符切分与 jieba 词级切分
-            vectorizer = TfidfVectorizer(token_pattern=r"(?u)\w+")
-            tfidf = vectorizer.fit_transform(seg_corpus + [seg_query])
-            sims = cosine_similarity(tfidf[-1], tfidf[:-1]).flatten()
-        except ValueError as exc:
+            query_tfidf = vectorizer.transform([seg_query])
+            sims = cosine_similarity(query_tfidf, corpus_tfidf).flatten()
+        except Exception as exc:  # noqa: BLE001
             logger.warning("TF-IDF 计算失败，退化为子串匹配: %s", exc)
             return self._substring_match(bucket, query_text, n_results)
 
