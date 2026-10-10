@@ -318,12 +318,27 @@ class QualityMetrics:
     def _jaccard_diversity(self, candidates: list[str]) -> float:
         """基于 Jaccard 距离的语义多样性降级方案。"""
         n: int = len(candidates)
+        if n < 2:
+            return 0.0
+
+        # 性能优化：预先计算各候选文本的 n-gram 集合（O(N) 分词与建集），
+        # 避免在 O(N^2) 两两比较循环中重复进行分词与集合构建（减少 N(N-1) -> N 次分词）
+        ngram_sets: list[set[tuple[str, ...]]] = [
+            self._ngram_set(c, 3) for c in candidates
+        ]
         total_distance: float = 0.0
         pair_count: int = 0
 
         for i in range(n):
+            set1 = ngram_sets[i]
             for j in range(i + 1, n):
-                jaccard_sim: float = self.ngram_jaccard(candidates[i], candidates[j], n=3)
+                set2 = ngram_sets[j]
+                if not set1 and not set2:
+                    jaccard_sim = 1.0
+                elif not set1 or not set2:
+                    jaccard_sim = 0.0
+                else:
+                    jaccard_sim = len(set1 & set2) / len(set1 | set2)
                 total_distance += 1.0 - jaccard_sim
                 pair_count += 1
 
